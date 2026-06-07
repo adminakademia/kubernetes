@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-uslugasts
+  labels:
+    run: nginx-sts
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    run: nginx-sts
+    
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-sts
+spec:
+  serviceName: "nginx-uslugasts"
+  replicas: 4
+  selector:
+    matchLabels:
+      run: nginx-sts
+  template:
+    metadata:
+      labels:
+        run: nginx-sts
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: www
+          mountPath: /var/www/
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      storageClassName: manual
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Mi
