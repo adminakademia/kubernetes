@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:.
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - name: web
+          containerPort: 80
+        volumeMounts:
+        - name: nginx-cm
+          mountPath: /etc/nginx
+        - name: wolumin1
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-cm
+        configMap:
+          name: nginx-cm
+      - name: wolumin1
+        hostPath:
+          path: /var/nginx
+          type: DirectoryOrCreate
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8880
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: nginx
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - 192.168.100.230-192.168.100.235
