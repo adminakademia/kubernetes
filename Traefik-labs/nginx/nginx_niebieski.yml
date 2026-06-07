@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ labels:
+  run: nginx
+ name: nginx-deploy-niebieski
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nginx-niebieski
+  template:
+    metadata:
+      labels:
+        run: nginx-niebieski
+    spec:
+      containers:
+      - name: nginx-niebieski
+        image: nginx
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - name: html-niebieski
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-niebieski
+        configMap:
+          name: niebieski-html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-niebieski
+  labels:
+    app: nginx
+spec:
+#  type: ClusterIP
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: nginx-niebieski

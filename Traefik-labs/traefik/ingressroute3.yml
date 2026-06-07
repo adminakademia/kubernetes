@@ -1,0 +1,24 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`czerwony.adminakademia.pl`) 
+      kind: Rule
+      services:
+        - name: nginx-deploy-czerwony
+          port: 80
+    - match: Host(`zielony.adminakademia.pl`) 
+      kind: Rule
+      services:
+        - name: nginx-deploy-zielony
+          port: 80
+    - match: Host(`niebieski.adminakademia.pl`) 
+      kind: Rule
+      services:
+        - name: nginx-deploy-niebieski
+          port: 80

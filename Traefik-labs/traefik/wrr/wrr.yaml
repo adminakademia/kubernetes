@@ -1,0 +1,35 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: TraefikService
+metadata:
+  name: nginx-wrr
+  namespace: default
+spec:
+  weighted:
+    services:
+     - name: nginx-deploy-czerwony
+       port: 80
+       weight: 0
+     - name: nginx-deploy-zielony
+       port: 80
+       weight: 3
+     - name: nginx-deploy-niebieski
+       port: 80
+       weight: 1
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`nginx.adminakademia.pl`)
+      kind: Rule
+      services:
+        - name: nginx-wrr
+          kind: TraefikService
+

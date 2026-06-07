@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ labels:
+  run: nginx
+ name: nginx-deploy-zielony
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: nginx-zielony
+  template:
+    metadata:
+      labels:
+        run: nginx-zielony
+    spec:
+      containers:
+      - name: nginx-zielony
+        image: nginx
+        ports:
+          - containerPort: 80
+        volumeMounts:
+        - name: html-zielony
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html-zielony
+        configMap:
+          name: zielony-html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-deploy-zielony
+  labels:
+    app: nginx
+spec:
+#  type: ClusterIP
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    run: nginx-zielony

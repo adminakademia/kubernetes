@@ -1,0 +1,41 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: nginx-stripprefix
+spec:
+  stripPrefix:
+    prefixes: 
+      - /zielony
+      - /niebieski
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`nginx.adminakademia.pl`) 
+      kind: Rule
+      services:
+        - name: nginx-deploy-czerwony
+          port: 80
+    - match: Host(`nginx.adminakademia.pl`) && Path(`/zielony`)
+      kind: Rule
+      middlewares:
+        - name: nginx-stripprefix
+      services:
+        - name: nginx-deploy-zielony
+          port: 80
+    - match: Host(`nginx.adminakademia.pl`) && Path(`/niebieski`)
+      kind: Rule
+      middlewares:
+        - name: nginx-stripprefix
+      services:
+        - name: nginx-deploy-niebieski
+          port: 80
+

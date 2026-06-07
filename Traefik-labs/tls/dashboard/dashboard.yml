@@ -1,0 +1,88 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: traefik.adminakademia.pl
+  namespace: traefik
+spec:
+  dnsNames:
+    - traefik.adminakademia.pl
+  secretName: traefik.adminakademia.pl
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: traefik-redirect-scheme
+  namespace: traefik
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+    port: "443"
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-basicauth
+  namespace: traefik
+spec:
+  basicAuth:
+    secret: dashboardsecret
+
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dashboardsecret
+  namespace: traefik
+data:
+  users: |
+    dXNlcjokYXByMSRMSHp4QW9oNyQ3SHhWYU84RGY2aUlCcE5XOG40TEYwCgo=
+
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard-http
+  namespace: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`traefik.adminakademia.pl`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      kind: Rule
+      middlewares:
+        - name: traefik-redirect-scheme
+      services:
+        - name: api@internal
+          kind: TraefikService
+
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard-https
+  namespace: traefik
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.adminakademia.pl`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      kind: Rule
+      middlewares:
+        - name: dashboard-basicauth
+      services:
+        - name: api@internal
+          kind: TraefikService
+  tls:
+      secretName: traefik.adminakademia.pl

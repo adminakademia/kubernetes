@@ -1,0 +1,41 @@
+
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: dashboard-basicauth
+  namespace: traefik
+spec:
+  basicAuth:
+    secret: dashboardsecret
+
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dashboardsecret
+  namespace: traefik
+data:
+  users: |
+    dXNlcjokYXByMSRMSHp4QW9oNyQ3SHhWYU84RGY2aUlCcE5XOG40TEYwCgo=
+
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: dashboard
+  namespace: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`traefik.adminakademia.pl`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
+      kind: Rule
+      middlewares:
+        - name: dashboard-basicauth
+      services:
+        - name: api@internal
+          kind: TraefikService
+

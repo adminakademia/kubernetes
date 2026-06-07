@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nginx.adminakademia.pl
+  namespace: default
+spec:
+  dnsNames:
+    - nginx.adminakademia.pl
+  secretName: nginx.adminakademia.pl
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer

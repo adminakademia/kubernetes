@@ -1,0 +1,62 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: nginx-basicauth
+spec:
+  basicAuth:
+    secret: authsecret
+
+
+---
+# Przyklad:
+#   htpasswd -nb user password | base64
+#   dXNlcjokYXByMSRMSHp4QW9oNyQ3SHhWYU84RGY2aUlCcE5XOG40TEYwCgo=
+
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: authsecret
+
+data:
+  users: |
+    dXNlcjokYXByMSRMSHp4QW9oNyQ3SHhWYU84RGY2aUlCcE5XOG40TEYwCgo=
+
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx-http
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`nginx.adminakademia.pl`)
+      kind: Rule
+      middlewares:
+        - name: nginx-basicauth
+      services:
+        - name: nginx-deploy-czerwony
+          port: 80
+
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx-https
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`nginx.adminakademia.pl`)
+      kind: Rule
+      middlewares:
+        - name: nginx-basicauth
+      services:
+        - name: nginx-deploy-czerwony
+          port: 80
+  tls:
+      secretName: nginx.adminakademia.pl
